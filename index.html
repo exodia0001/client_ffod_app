@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Food Lookup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 4px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Barcode Food Lookup</h1>
+    <p>Enter the barcode to get food details:</p>
+    <input type="text" id="barcodeInput" placeholder="Enter barcode...">
+    <button onclick="lookupFood()">Lookup</button>
+
+    <div id="result" class="result"></div>
+
+    <script>
+        async function lookupFood() {
+            const barcode = document.getElementById('barcodeInput').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ''; // Clear previous results
+
+            if (!barcode) {
+                resultDiv.innerHTML = '<p class="error">Please enter a barcode.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/food/${barcode}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h2>Food Information</h2>
+                        <p><strong>Categories:</strong> ${data.categories}</p>
+                        <p><strong>Ecoscore Grade:</strong> ${data.ecoscore_grade}</p>
+                        <p><strong>Ecoscore Score:</strong> ${data.ecoscore_score}</p>
+                        <p><strong>Countries:</strong> ${data.countries}</p>
+                        <p><strong>Allergens:</strong> ${data.allergens}</p>
+                        <img src="${data.images.front}" alt="Product Image">
+                        <h3>Nutritional Information (per 100g)</h3>
+                        <ul>
+                            <li><strong>Energy:</strong> ${data.nutritional_info.energy.energy_kcal_value} ${data.nutritional_info.energy.energy_kcal_unit}</li>
+                            <li><strong>Fat:</strong> ${data.nutritional_info.fat.value} ${data.nutritional_info.fat.unit}</li>
+                            <li><strong>Saturated Fat:</strong> ${data.nutritional_info.saturated_fat.value} ${data.nutritional_info.saturated_fat.unit}</li>
+                            <li><strong>Carbohydrates:</strong> ${data.nutritional_info.carbohydrates.value} ${data.nutritional_info.carbohydrates.unit}</li>
+                            <li><strong>Sugars:</strong> ${data.nutritional_info.sugars.value} ${data.nutritional_info.sugars.unit}</li>
+                            <li><strong>Fiber:</strong> ${data.nutritional_info.fiber.value} ${data.nutritional_info.fiber.unit}</li>
+                            <li><strong>Proteins:</strong> ${data.nutritional_info.proteins.value} ${data.nutritional_info.proteins.unit}</li>
+                            <li><strong>Salt:</strong> ${data.nutritional_info.salt.value} ${data.nutritional_info.salt.unit}</li>
+                            <li><strong>Sodium:</strong> ${data.nutritional_info.sodium.value} ${data.nutritional_info.sodium.unit}</li>
+                        </ul>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">${data.message || 'Failed to fetch food data.'}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
